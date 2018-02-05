@@ -80,13 +80,26 @@ Step 5. Increments the ```page_number``` variable by one before returning to ste
 page_number = page_number + 1
 ```
 
-(dive into how you'd go about testing it w/o actually hitting the page)
+# Setup Basic Testing
 
-To test the parsing functionality without making the making repeated the get requests, you can download the page html and pass it in as the html to be parsed by the parse_html function and then set a flag in the command line to notify the script to only parse the html
+To test the parsing functionality without making the repeated get requests to the hacker news url, you can download the page html and pass it in as the html to be parsed by the parse_html function and then set a flag in the command line to notify the script to only parse the html.
 
-# Set Up Multiprocessing
 
-### Prepare the ```__main__``` function for Multiprocessing:
+Create a ```test``` directory:
+
+```sh
+$ mkdir test
+```
+
+Download the page html manually to the ```test``` directory and rename it ```test.html```:
+
+![alt text](/assets/screenshot.png "Save Screenshot")
+
+
+
+# Setup Multiprocessing
+
+In order to setup Multiprocessing we will go through the following steps. At the end we will add a flag to run Chrome headless to increase processing speed.
 
 Move the call to ```get_driver()``` inside the while loop and add ```browser.quit()``` to each instance:
 
@@ -184,7 +197,7 @@ if __name__ == '__main__':
 
 ```
 
-Go headless:
+We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` to the driver:
 
 ```python
 
