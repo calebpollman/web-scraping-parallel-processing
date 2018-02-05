@@ -12,8 +12,8 @@ def get_driver():
     return driver
 
 
-def connect_to_base(browser, page_count):
-    base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_count)
+def connect_to_base(browser, page_number):
+    base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
     try:
         browser.get(base_url)
         return True
@@ -62,16 +62,16 @@ def write_to_file(output_list, filename):
 if __name__ == '__main__':
     start_time = time()
     browser = get_driver()
-    page_count = 1
+    page_number = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_count <= 20:
-        if connect_to_base(browser, page_count):
+    while page_number <= 20:
+        if connect_to_base(browser, page_number):
             sleep(2)
             html = browser.page_source
             output_list = parse_html(html)
             write_to_file(output_list, filename) 
-            page_count = page_count + 1
+            page_number = page_number + 1
             
         else:
             print('Error connecting to Hacker News')
