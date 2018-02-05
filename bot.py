@@ -17,7 +17,7 @@ def connect_to_base(browser, page_count):
         browser.get(base_url)
         return True
     except:
-        print('Error connecting to {0}'.format(BASE_URL))
+        print('Error connecting to {0}'.format(base_url))
         return False
 
 
@@ -25,10 +25,10 @@ def parse_html(html):
     soup = BeautifulSoup(html, 'html.parser')
     output_list = []
     try:
-        tr_blocks = soup.find_all('tr', class_ = 'athing')
+        tr_blocks = soup.find_all('tr', class_='athing')
         for tr in tr_blocks:
-            a_elements = tr.find_all('a')
             tr_id = tr.get('id')
+            a_elements = tr.find_all('a')
             
             try:
                 score = soup.find(id='score_{0}'.format(tr_id)).string
