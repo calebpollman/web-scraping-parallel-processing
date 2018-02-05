@@ -10,13 +10,13 @@ def get_driver():
     return driver
 ```
 
-While ```page_count``` variable is less than or equal to 20:
+While ```page_number``` variable is less than or equal to 20:
 
-Step 1. Attempts to connect to hackernews via ```connect_to_base(browser, page_count)``` using the ```browser``` instance and ```page_count```:
+Step 1. Attempts to connect to hackernews via ```connect_to_base(browser, page_number)``` using the ```browser``` instance and ```page_number```:
 
 ```python
-def connect_to_base(browser, page_count):
-    base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_count)
+def connect_to_base(browser, page_number):
+    base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
     try:
         browser.get(base_url)
         return True
@@ -74,10 +74,10 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 ```
 
-Step 5. Increments the ```page_count``` variable by one before returning to step 1:
+Step 5. Increments the ```page_number``` variable by one before returning to step 1:
 
 ```python
-page_count = page_count + 1
+page_number = page_number + 1
 ```
 
 (dive into how you'd go about testing it w/o actually hitting the page)
@@ -96,17 +96,17 @@ Move the call to ```get_driver()``` inside the while loop and add ```browser.qui
 
 if __name__ == '__main__':
     start_time = time()
-    page_count = 1
+    page_number = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_count <= 20:
+    while page_number <= 20:
         browser = get_driver()
-        if connect_to_base(browser, page_count):
+        if connect_to_base(browser, page_number):
             sleep(2)
             html = browser.page_source
             output_list = parse_html(html)
             write_to_file(output_list, filename) 
-            page_count = page_count + 1
+            page_number = page_number + 1
             browser.quit()
         else:
             print('Error connecting to Hacker News')
@@ -116,15 +116,15 @@ if __name__ == '__main__':
 
 ```
 
-Abstract functions out of ```__main___``` by creating ```run_process(page_count)```:
+Abstract functions out of ```__main___``` by creating ```run_process(page_number)```:
 
 ```python
 
 ...
 
-def run_process(page_count, filename):
+def run_process(page_number, filename):
     browser = get_driver()
-    if connect_to_base(browser, page_count):
+    if connect_to_base(browser, page_number):
         sleep(2)
         html = browser.page_source
         output_list = parse_html(html)
@@ -137,12 +137,12 @@ def run_process(page_count, filename):
 
 if __name__ == '__main__':
     start_time = time()
-    page_count = 1
+    page_number = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_count <= 20:
-        run_process(page_count, filename)
-        page_count = page_count + 1
+    while page_number <= 20:
+        run_process(page_number, filename)
+        page_number = page_number + 1
 
 ...
 
@@ -165,12 +165,15 @@ from multiprocessing import Pool, cpu_count
 
 ```
 
-Refactor ```__main__``` to use ```Pool``` in place of ```while``` loop:
+Refactor ```__main__``` to use ```Pool()``` in place of ```while``` loop and remove ```page_number``` variable:
 
 ```python
 
 ...
 
+if __name__ == '__main__':
+    start_time = time()
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
     with Pool(cpu_count()-1) as p:
         p.starmap(run_process, zip(range(1, 21), repeat(filename)))

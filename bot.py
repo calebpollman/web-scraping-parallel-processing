@@ -17,8 +17,8 @@ def get_driver():
     return driver
 
 
-def connect_to_base(browser, page_count):
-    base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_count)
+def connect_to_base(browser, page_number):
+    base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
     try:
         browser.get(base_url)
         return True
@@ -36,7 +36,7 @@ def parse_html(html):
         tr_blocks = soup.find_all('tr', class_='athing')
         for tr in tr_blocks:
             tr_id = tr.get('id')
-            
+
             try:
                 score = soup.find(id='score_{0}'.format(tr_id)).string
             except:
@@ -64,9 +64,9 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 
 
-def run_process(page_count, filename):
+def run_process(page_number, filename):
     browser = get_driver()
-    if connect_to_base(browser, page_count):
+    if connect_to_base(browser, page_number):
         sleep(2)
         html = browser.page_source
         output_list = parse_html(html)
@@ -79,7 +79,6 @@ def run_process(page_count, filename):
 
 if __name__ == '__main__':
     start_time = time()
-    page_count = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
     with Pool(cpu_count()-1) as p:
