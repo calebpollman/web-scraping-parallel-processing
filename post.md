@@ -83,3 +83,119 @@ page_count = page_count + 1
 (dive into how you'd go about testing it w/o actually hitting the page)
 
 To test the parsing functionality without making the making repeated the get requests, you can download the page html and pass it in as the html to be parsed by the parse_html function and then set a flag in the command line to notify the script to only parse the html
+
+# Set Up Multiprocessing
+
+### Prepare the ```__main__``` function for Multiprocessing:
+
+Move the call to ```get_driver()``` inside the while loop and add ```browser.quit()``` to each instance:
+
+```python
+
+...
+
+if __name__ == '__main__':
+    start_time = time()
+    page_count = 1
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = 'output_{0}.csv'.format(output_timestamp)
+    while page_count <= 20:
+        browser = get_driver()
+        if connect_to_base(browser, page_count):
+            sleep(2)
+            html = browser.page_source
+            output_list = parse_html(html)
+            write_to_file(output_list, filename) 
+            page_count = page_count + 1
+            browser.quit()
+        else:
+            print('Error connecting to Hacker News')
+            browser.quit()
+
+...
+
+```
+
+Abstract functions out of ```__main___``` by creating ```run_process(page_count)```:
+
+```python
+
+...
+
+def run_process(page_count, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_count):
+        sleep(2)
+        html = browser.page_source
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+        browser.quit()
+    else:
+        print('Error connecting to Hacker News')
+        browser.quit()
+
+
+if __name__ == '__main__':
+    start_time = time()
+    page_count = 1
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = 'output_{0}.csv'.format(output_timestamp)
+    while page_count <= 20:
+        run_process(page_count, filename)
+        page_count = page_count + 1
+
+...
+
+```
+
+Add ```Pool, cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports at top of script:
+
+```python
+
+...
+
+from time import sleep, time
+from itertools import repeat
+
+from selenium import webdriver
+from bs4 import BeautifulSoup
+from multiprocessing import Pool, cpu_count
+
+...
+
+```
+
+Refactor ```__main__``` to use ```Pool``` in place of ```while``` loop:
+
+```python
+
+...
+
+    filename = 'output_{0}.csv'.format(output_timestamp)
+    with Pool(cpu_count()-1) as p:
+        p.starmap(run_process, zip(range(1, 21), repeat(filename)))
+    p.close()
+    p.join()
+
+...
+
+```
+
+Go headless:
+
+```python
+
+...
+
+def get_driver():
+    # initialize options
+    options = webdriver.ChromeOptions()
+    # pass in headless argument to options
+    options.add_argument('--headless')
+    # initialize driver
+    driver = webdriver.Chrome(chrome_options=options)
+    return driver
+
+...
+
+```

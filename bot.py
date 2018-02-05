@@ -1,14 +1,19 @@
 import datetime
 import csv
 from time import sleep, time
+from itertools import repeat
 
 from selenium import webdriver
 from bs4 import BeautifulSoup
-
+from multiprocessing import Pool, cpu_count
 
 def get_driver():
+    # initialize options
+    options = webdriver.ChromeOptions()
+    # pass in headless argument to options
+    options.add_argument('--headless')
     # initialize driver
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(chrome_options=options)
     return driver
 
 
@@ -59,23 +64,28 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 
 
+def run_process(page_count, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_count):
+        sleep(2)
+        html = browser.page_source
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+        browser.quit()
+    else:
+        print('Error connecting to Hacker News')
+        browser.quit()
+
+
 if __name__ == '__main__':
     start_time = time()
-    browser = get_driver()
     page_count = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_count <= 20:
-        if connect_to_base(browser, page_count):
-            sleep(2)
-            html = browser.page_source
-            output_list = parse_html(html)
-            write_to_file(output_list, filename) 
-            page_count = page_count + 1
-            
-        else:
-            print('Error connecting to Hacker News')
-
-    browser.quit()
+    with Pool(cpu_count()-1) as p:
+        p.starmap(run_process, zip(range(1, 21), repeat(filename)))
+    p.close()
+    p.join()
+    
     end_time = time()
     print('Elapsed run time: {0} seconds'.format(end_time - start_time))
