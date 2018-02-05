@@ -55,7 +55,7 @@ def parse_html(html):
                 'score': score,
                 'title': tr.find(class_='storylink').string
             }
-            # appends article_info to output_list
+            # append article_info to output_list
             output_list.append(article_info)
     except:
         print('parsing error')
