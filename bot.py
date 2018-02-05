@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 
 
 def get_driver():
+    # initialize driver
     driver = webdriver.Chrome()
     return driver
 
@@ -22,29 +23,31 @@ def connect_to_base(browser, page_count):
 
 
 def parse_html(html):
+    # create soup object
     soup = BeautifulSoup(html, 'html.parser')
     output_list = []
     try:
+        # parses soup object to get article id, rank, score, and title
         tr_blocks = soup.find_all('tr', class_='athing')
         for tr in tr_blocks:
             tr_id = tr.get('id')
-            a_elements = tr.find_all('a')
             
             try:
                 score = soup.find(id='score_{0}'.format(tr_id)).string
             except:
-                score = 'null'
+                score = '0 points'
             
             article_info = {
                 'id': tr_id,
                 'rank': tr.span.string,
                 'score': score,
-                'title': a_elements[1].string
+                'title': tr.find(class_='storylink').string
             }
+            # appends article_info to output_list
             output_list.append(article_info)
     except:
         print('parsing error')
-
+    # returns output_list
     return output_list
 
 
