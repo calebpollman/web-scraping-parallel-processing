@@ -80,10 +80,10 @@ Step 5. Increments the ```page_number``` variable by one before returning to ste
 page_number = page_number + 1
 ```
 
+
 # Setup Basic Testing
 
-To test the parsing functionality without making the repeated get requests to the hacker news url, you can download the page html and pass it in as the html to be parsed by the parse_html function and then set a flag in the command line to notify the script to only parse the html.
-
+To test the parsing functionality without initiating the driver and making the repeated get requests to the hacker news url, you can download the page html and parse it locally. 
 
 Create a ```test``` directory:
 
@@ -95,6 +95,49 @@ Download the page html manually to the ```test``` directory and rename it ```tes
 
 ![alt text](/assets/screenshot.png "Save Screenshot")
 
+Add ```sys``` package to imports near top of file:
+
+```python
+
+import datetime
+import csv
+import sys
+from time import sleep, time
+
+```
+
+Add logic in ```__main__``` to check for ```--test``` flag:
+
+```python
+
+...
+
+if __name__ == '__main__':
+    start_time = time()
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = 'output_{0}.csv'.format(output_timestamp)
+    if sys.argv[1] == '--test':
+        html = open('test/test.html')
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+    else:
+        browser = get_driver()
+        page_number = 1
+        while page_number <= 20:
+            if connect_to_base(browser, page_number):
+                sleep(2)
+                html = browser.page_source
+                output_list = parse_html(html)
+                write_to_file(output_list, filename) 
+                page_number = page_number + 1
+                
+            else:
+                print('Error connecting to Hacker News')
+        browser.quit()
+
+...
+
+```
 
 
 # Setup Multiprocessing
@@ -109,9 +152,9 @@ Move the call to ```get_driver()``` inside the while loop and add ```browser.qui
 
 if __name__ == '__main__':
     start_time = time()
-    page_number = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
+    page_number = 1
     while page_number <= 20:
         browser = get_driver()
         if connect_to_base(browser, page_number):
@@ -150,9 +193,9 @@ def run_process(page_number, filename):
 
 if __name__ == '__main__':
     start_time = time()
-    page_number = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
+    page_number = 1
     while page_number <= 20:
         run_process(page_number, filename)
         page_number = page_number + 1
