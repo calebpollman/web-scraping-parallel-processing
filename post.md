@@ -19,7 +19,7 @@ Install ```chromedriver``` globally:
 
 # Basic Project Overview: 
 
-The script scrapes the first 20 pages of hackernews for information about the current articles listed.
+The script traverses and scrapes the first 20 pages of hackernews for information about the current articles listed using Selenium as a webdriver and BeautifulSoup to parse the html.
 
 First, the browser is initiated via ```get_driver() ```:
 
@@ -29,7 +29,7 @@ def get_driver():
     return driver
 ```
 
-While ```page_number``` variable is less than or equal to 20:
+** While ```page_number``` variable is less than or equal to 20: **
 
 Step 1. Attempts to connect to hackernews via ```connect_to_base(browser, page_number)``` using the ```browser``` instance and ```page_number```:
 
@@ -125,7 +125,65 @@ import sys
 from time import sleep, time
 ```
 
-Add logic in ```__main__``` to check for ```--test``` flag:
+Add a ```try/except``` block in ```__main__``` to check for extra command line arguments:
+
+```python
+...
+
+if __name__ == '__main__':
+    start_time = time()
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = 'output_{0}.csv'.format(output_timestamp)
+    try:
+        test_flag = sys.argv[1]
+    except:
+        test_flag = 'null'
+    browser = get_driver()
+    ...
+
+...
+```
+
+Next, add an ```if/else``` operator to check for the value of ```--test``` in the ```test_flag``` variable:
+
+```python
+...
+
+if __name__ == '__main__':
+    ...
+    try:
+        test_flag = sys.argv[1]
+    except:
+        test_flag = 'null'
+    if sys.argv[1] == '--test':
+        print('TEST MODE')
+    else:
+        browser = get_driver()
+        ...
+
+...
+```
+
+Finally, open the ```test.html``` file we added in the ```test``` directory earlier, pass it to ```parse_html(html)```, and pass the results to ```write_to_file(output_list, filename)``` along with the ```filename``` variable:
+
+
+```python
+...
+
+if __name__ == '__main__':
+    ...
+    if sys.argv[1] == '--test':
+        html = open('test/test.html')
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+    else:
+        browser = get_driver()
+        ...
+
+...
+```
+
+The ```__main__``` function should now look like this:
 
 ```python
 ...
@@ -157,7 +215,8 @@ if __name__ == '__main__':
                 print('Error connecting to hackernews')
         browser.quit()
 
-...
+    end_time = time()
+    print('Elapsed run time: {0} seconds'.format(end_time - start_time))
 ```
 
 Run ```$ python3 bot.py --test``` from the command line and make sure you don't have any errors before moving on to the next section.
@@ -282,7 +341,10 @@ if __name__ == '__main__':
 ...
 ```
 
-We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` to the driver:
+
+# Configure Headless Chromedriver
+
+We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` with the ```--headless``` flag to the driver:
 
 ```python
 ...
@@ -299,4 +361,4 @@ def get_driver():
 ...
 ```
 
-# Conclusion
+# Conclusion/After Analysis
