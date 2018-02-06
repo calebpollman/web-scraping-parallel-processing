@@ -1,3 +1,4 @@
+import sys
 import csv
 import datetime
 from time import sleep, time
@@ -59,27 +60,32 @@ def write_to_file(output_list, filename):
 
 if __name__ == '__main__':
     start_time = time()
-    browser = get_driver()
-    page_number = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_number <= 20:
-        if connect_to_base(browser, page_number):
-            sleep(2)
-<<<<<<< HEAD
-            html = browser.page_source
-            output_list = parse_html(html)
-            write_to_file(output_list, filename) 
-            page_number = page_number + 1
-            
-=======
-            html_source = browser.page_source
-            output = parse_html(html_source)
-            write_to_file(output, filename)
-            page_number = page_number + 1
->>>>>>> multiprocessing
-        else:
-            print('Error connecting to Hacker News')
-    browser.quit()
-    end_time = time()
-    print('Elapsed run time: {0} seconds'.format(end_time - start_time))
+    # check for command line args
+    try:
+        test_flag = sys.argv[1]
+    except Exception as ex:
+        test_flag = 'null'
+    if sys.argv[1] == '--test':
+        # test mode
+        print('TEST MODE')
+        html = open('test/test.html')
+        output_list = parse_html(html)
+        write_to_file(output_list, filename)
+    else:
+        # regular mode
+        browser = get_driver()
+        page_number = 1
+        while page_number <= 20:
+            if connect_to_base(browser, page_number):
+                sleep(2)
+                html_source = browser.page_source
+                output = parse_html(html_source)
+                write_to_file(output, filename)
+                page_number = page_number + 1
+            else:
+                print('Error connecting to Hacker News')
+        browser.quit()
+        end_time = time()
+        print('Elapsed run time: {0} seconds'.format(end_time - start_time))
