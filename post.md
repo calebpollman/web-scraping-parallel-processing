@@ -37,11 +37,6 @@ def get_driver():
     return driver
 ```
 
-<<<<<<< HEAD
-While ```page_number``` variable is less than or equal to 20:
-
-Step 1. Attempts to connect to hackernews via ```connect_to_base(browser, page_number)``` using the ```browser``` instance and ```page_number```:
-=======
 From there, a `while` loop is configured to control the remainder of the program flow:
 
 ```python
@@ -57,7 +52,6 @@ while page_number <= 20:
 ```
 
 The browser instance along with a page number is passed to  `connect_to_base()`, which attempts to connect to Hacker News:
->>>>>>> multiprocessing
 
 ```python
 def connect_to_base(browser, page_number):
@@ -120,12 +114,6 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 ```
 
-<<<<<<< HEAD
-Step 5. Increments the ```page_number``` variable by one before returning to step 1:
-
-```python
-page_number = page_number + 1
-=======
 Finally, the page number is incremented and the process start over again:
 
 ```python
@@ -275,7 +263,6 @@ if __name__ == '__main__':
             page_number = page_number + 1
 
 ...
->>>>>>> multiprocessing
 ```
 
 Add ```Pool``` and  ```cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports near top of *bot.py*:
@@ -339,127 +326,6 @@ def get_driver():
 ...
 ```
 
-<<<<<<< HEAD
-To test the parsing functionality without making the making repeated the get requests, you can download the page html and pass it in as the html to be parsed by the parse_html function and then set a flag in the command line to notify the script to only parse the html
-
-# Set Up Multiprocessing
-
-### Prepare the ```__main__``` function for Multiprocessing:
-
-Move the call to ```get_driver()``` inside the while loop and add ```browser.quit()``` to each instance:
-
-```python
-
-...
-
-if __name__ == '__main__':
-    start_time = time()
-    page_number = 1
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_number <= 20:
-        browser = get_driver()
-        if connect_to_base(browser, page_number):
-            sleep(2)
-            html = browser.page_source
-            output_list = parse_html(html)
-            write_to_file(output_list, filename) 
-            page_number = page_number + 1
-            browser.quit()
-        else:
-            print('Error connecting to Hacker News')
-            browser.quit()
-
-...
-
-```
-
-Abstract functions out of ```__main___``` by creating ```run_process(page_number)```:
-
-```python
-
-...
-
-def run_process(page_number, filename):
-    browser = get_driver()
-    if connect_to_base(browser, page_number):
-        sleep(2)
-        html = browser.page_source
-        output_list = parse_html(html)
-        write_to_file(output_list, filename) 
-        browser.quit()
-    else:
-        print('Error connecting to Hacker News')
-        browser.quit()
-
-
-if __name__ == '__main__':
-    start_time = time()
-    page_number = 1
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_number <= 20:
-        run_process(page_number, filename)
-        page_number = page_number + 1
-
-...
-
-```
-
-Add ```Pool, cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports at top of script:
-
-```python
-
-...
-
-from time import sleep, time
-from itertools import repeat
-
-from selenium import webdriver
-from bs4 import BeautifulSoup
-from multiprocessing import Pool, cpu_count
-
-...
-
-```
-
-Refactor ```__main__``` to use ```Pool()``` in place of ```while``` loop and remove ```page_number``` variable:
-
-```python
-
-...
-
-if __name__ == '__main__':
-    start_time = time()
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    with Pool(cpu_count()-1) as p:
-        p.starmap(run_process, zip(range(1, 21), repeat(filename)))
-    p.close()
-    p.join()
-
-...
-
-```
-
-Go headless:
-
-```python
-
-...
-
-def get_driver():
-    # initialize options
-    options = webdriver.ChromeOptions()
-    # pass in headless argument to options
-    options.add_argument('--headless')
-    # initialize driver
-    driver = webdriver.Chrome(chrome_options=options)
-    return driver
-
-...
-
-```
-=======
 # Conclusion/After Analysis
->>>>>>> multiprocessing
+
+TODO: Write a conclusion
