@@ -16,11 +16,11 @@ After completing this tutorial you should be able to:
 From the command line run the following commands:
 
 ```sh
-$ git clone this-repo
+$ git clone git@github.com:calebpollman/web-scraping-parallel-processing.git
 $ pip install requirements.txt
 ```
 
-Install `chromedriver` globally.
+Install `chromedriver` globally. You can find instructions [here](https://sites.google.com/a/chromium.org/chromedriver/).
 
 ## Basic Project Overview
 
@@ -64,9 +64,9 @@ def connect_to_base(browser, page_number):
         return False
 ```
 
-TODO: you may want to either use an explicit wait or make a note of it - http://selenium-python.readthedocs.io/waits.html#explicit-waits
+For this basic example we call ```sleep(2)``` after connecting to hackernews to give the page a emulate a human user. By default, the webdriver will wait for a page to load via the ```.get()``` method. If you wanted to enusre that a certain element has loaded (e.g. you want to make sure a button is present and clickable) Selenium has a built in explicit wait method for pausing the scraper and waiting on specific events. You can find more information in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
 
-After waiting a few seconds for the page to load, the browser grabs the HTML source, which is the passed along to `parse_html()`:
+After the waiting period, the browser grabs the HTML source, which is the passed along to `parse_html()`:
 
 ```python
 html_source = browser.page_source
@@ -126,9 +126,7 @@ Got it? Great! Let's add some basic testing.
 
 # Setup Basic Testing
 
-To test the parsing functionality without initiating the browser and, thus, making repeated get requests to Hacker News, you can download the page html and parse it locally.
-
-TODO: explain a bit more as to why you'd want to do this. why is this so important?
+To test the parsing functionality without initiating the browser and, thus, making repeated get requests to Hacker News, you can download the page html and parse it locally. This can help avoid scenarios where you may get your ip blocked for making too many requests too quickly while writing and testing your parsing function, as well as saving you time by not needing to fire up a browser every time you run the script.
 
 Create a `test` directory:
 
@@ -267,7 +265,7 @@ if __name__ == '__main__':
 ...
 ```
 
-Add ```Pool``` and  ```cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports near top of script:
+Add ```Pool``` and  ```cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports near top of *bot.py*:
 
 ```python
 ...

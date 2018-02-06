@@ -45,7 +45,7 @@ def parse_html(html):
             # appends article_info to output_list
             output_list.append(article_info)
     except Exception as ex:
-        print('parsing error')
+        print('Parsing error')
     # returns output_list
     return output_list
 
