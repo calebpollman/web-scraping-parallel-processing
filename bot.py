@@ -2,14 +2,20 @@ import datetime
 import csv
 import sys
 from time import sleep, time
+from itertools import repeat
 
 from selenium import webdriver
 from bs4 import BeautifulSoup
+from multiprocessing import Pool, cpu_count
 
 
 def get_driver():
+    # initialize options
+    options = webdriver.ChromeOptions()
+    # pass in headless argument to options
+    options.add_argument('--headless')
     # initialize driver
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(chrome_options=options)
     return driver
 
 
@@ -60,28 +66,36 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 
 
+def run_process(page_number, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_number):
+        sleep(2)
+        html = browser.page_source
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+        browser.quit()
+    else:
+        print('Error connecting to hackernews')
+        browser.quit()
+
+
 if __name__ == '__main__':
     start_time = time()
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    if sys.argv[1] == '--test':
+    try:
+        test_flag = sys.argv[1]
+    except:
+        test_flag = 'null'
+    if test_flag == '--test':
         html = open('test/test.html')
         output_list = parse_html(html)
         write_to_file(output_list, filename) 
     else:
-        browser = get_driver()
-        page_number = 1
-        while page_number <= 20:
-            if connect_to_base(browser, page_number):
-                sleep(2)
-                html = browser.page_source
-                output_list = parse_html(html)
-                write_to_file(output_list, filename) 
-                page_number = page_number + 1
-                
-            else:
-                print('Error connecting to Hacker News')
-        browser.quit()
+        with Pool(cpu_count()-1) as p:
+            p.starmap(run_process, zip(range(1, 21), repeat(filename)))
+        p.close()
+        p.join()
     
     end_time = time()
     print('Elapsed run time: {0} seconds'.format(end_time - start_time))

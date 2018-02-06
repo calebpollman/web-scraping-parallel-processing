@@ -1,6 +1,25 @@
-(talk about the script a bit)
+# Introduction
 
-OVERVIEW: The script scrapes the first 20 pages of hackernews for information about the current articles listed.
+After completing this tutorial you should be able to:
+
+1. Use command line arguments to test your python code
+2. Setup Multiprocessing for a web scraper
+3. Configure headless mode for Chromedriver with Selenium
+
+
+# Project Setup
+
+From the command line run the following commands:
+
+```$ git clone this-repo```
+```$ pip install requirements.txt```
+
+Install ```chromedriver``` globally:
+
+
+# Basic Project Overview: 
+
+The script scrapes the first 20 pages of hackernews for information about the current articles listed.
 
 First, the browser is initiated via ```get_driver() ```:
 
@@ -80,10 +99,12 @@ Step 5. Increments the ```page_number``` variable by one before returning to ste
 page_number = page_number + 1
 ```
 
+Got it? Great! Let's add some basic testing.
+
 
 # Setup Basic Testing
 
-To test the parsing functionality without initiating the driver and making the repeated get requests to the hacker news url, you can download the page html and parse it locally. 
+To test the parsing functionality without initiating the driver and making repeated get requests to the hackernews url, you can download the page html and parse it locally. 
 
 Create a ```test``` directory:
 
@@ -98,24 +119,25 @@ Download the page html manually to the ```test``` directory and rename it ```tes
 Add ```sys``` package to imports near top of file:
 
 ```python
-
 import datetime
 import csv
 import sys
 from time import sleep, time
-
 ```
 
 Add logic in ```__main__``` to check for ```--test``` flag:
 
 ```python
-
 ...
 
 if __name__ == '__main__':
     start_time = time()
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
+    try:
+        test_flag = sys.argv[1]
+    except:
+        test_flag = 'null'
     if sys.argv[1] == '--test':
         html = open('test/test.html')
         output_list = parse_html(html)
@@ -132,12 +154,13 @@ if __name__ == '__main__':
                 page_number = page_number + 1
                 
             else:
-                print('Error connecting to Hacker News')
+                print('Error connecting to hackernews')
         browser.quit()
 
 ...
-
 ```
+
+Run ```$ python3 bot.py --test``` from the command line and make sure you don't have any errors before moving on to the next section.
 
 
 # Setup Multiprocessing
@@ -147,35 +170,41 @@ In order to setup Multiprocessing we will go through the following steps. At the
 Move the call to ```get_driver()``` inside the while loop and add ```browser.quit()``` to each instance:
 
 ```python
-
 ...
 
 if __name__ == '__main__':
     start_time = time()
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    page_number = 1
-    while page_number <= 20:
-        browser = get_driver()
-        if connect_to_base(browser, page_number):
-            sleep(2)
-            html = browser.page_source
-            output_list = parse_html(html)
-            write_to_file(output_list, filename) 
-            page_number = page_number + 1
-            browser.quit()
-        else:
-            print('Error connecting to Hacker News')
-            browser.quit()
+    try:
+        test_flag = sys.argv[1]
+    except:
+        test_flag = 'null'
+    if sys.argv[1] == '--test':
+        html = open('test/test.html')
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+    else:
+        page_number = 1
+        while page_number <= 20:
+            browser = get_driver()
+            if connect_to_base(browser, page_number):
+                sleep(2)
+                html = browser.page_source
+                output_list = parse_html(html)
+                write_to_file(output_list, filename) 
+                page_number = page_number + 1
+                browser.quit()
+            else:
+                print('Error connecting to hackernews')
+                browser.quit()
 
 ...
-
 ```
 
 Abstract functions out of ```__main___``` by creating ```run_process(page_number)```:
 
 ```python
-
 ...
 
 def run_process(page_number, filename):
@@ -187,7 +216,7 @@ def run_process(page_number, filename):
         write_to_file(output_list, filename) 
         browser.quit()
     else:
-        print('Error connecting to Hacker News')
+        print('Error connecting to hackernews')
         browser.quit()
 
 
@@ -195,19 +224,26 @@ if __name__ == '__main__':
     start_time = time()
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    page_number = 1
-    while page_number <= 20:
-        run_process(page_number, filename)
-        page_number = page_number + 1
+    try:
+        test_flag = sys.argv[1]
+    except:
+        test_flag = 'null'
+    if test_flag == '--test':
+        html = open('test/test.html')
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+    else:
+        page_number = 1
+        while page_number <= 20:
+            run_process(page_number, filename)
+            page_number = page_number + 1
 
 ...
-
 ```
 
-Add ```Pool, cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports at top of script:
+Add ```Pool``` and  ```cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports near top of script:
 
 ```python
-
 ...
 
 from time import sleep, time
@@ -218,32 +254,37 @@ from bs4 import BeautifulSoup
 from multiprocessing import Pool, cpu_count
 
 ...
-
 ```
 
 Refactor ```__main__``` to use ```Pool()``` in place of ```while``` loop and remove ```page_number``` variable:
 
 ```python
-
 ...
 
 if __name__ == '__main__':
     start_time = time()
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    with Pool(cpu_count()-1) as p:
-        p.starmap(run_process, zip(range(1, 21), repeat(filename)))
-    p.close()
-    p.join()
+    try:
+        test_flag = sys.argv[1]
+    except:
+        test_flag = 'null'
+    if test_flag == '--test':
+        html = open('test/test.html')
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+    else:
+        with Pool(cpu_count()-1) as p:
+            p.starmap(run_process, zip(range(1, 21), repeat(filename)))
+        p.close()
+        p.join()
 
 ...
-
 ```
 
 We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` to the driver:
 
 ```python
-
 ...
 
 def get_driver():
@@ -256,5 +297,6 @@ def get_driver():
     return driver
 
 ...
-
 ```
+
+# Conclusion
