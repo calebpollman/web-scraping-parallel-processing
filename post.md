@@ -64,7 +64,7 @@ def connect_to_base(browser, page_number):
         return False
 ```
 
-For this basic example we call ```sleep(2)``` after connecting to hackernews to give the page a emulate a human user. By default, the webdriver will wait for a page to load via the ```.get()``` method. If you wanted to enusre that a certain element has loaded (e.g. you want to make sure a button is present and clickable) Selenium has a built in explicit wait method for pausing the scraper and waiting on specific events. You can find more information in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
+For this basic example we call ```sleep(2)``` after connecting to hackernews to emulate a human user. By default, the webdriver will wait for a page to load via the ```.get()``` method. If you wanted to enusre that a certain element has loaded (e.g. you want to make sure a button is present and clickable) Selenium has a built in explicit wait method for pausing the scraper and waiting on specific events. You can find more information in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
 
 After the waiting period, the browser grabs the HTML source, which is the passed along to `parse_html()`:
 
