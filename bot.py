@@ -44,7 +44,7 @@ def parse_html(html):
             # appends article_info to output_list
             output_list.append(article_info)
     except Exception as ex:
-        print('Parsing error')
+        print('Parsing Error')
     # returns output_list
     return output_list
 
@@ -66,18 +66,10 @@ if __name__ == '__main__':
     while page_number <= 20:
         if connect_to_base(browser, page_number):
             sleep(2)
-<<<<<<< HEAD
-            html = browser.page_source
-            output_list = parse_html(html)
-            write_to_file(output_list, filename) 
-            page_number = page_number + 1
-            
-=======
             html_source = browser.page_source
             output = parse_html(html_source)
             write_to_file(output, filename)
             page_number = page_number + 1
->>>>>>> multiprocessing
         else:
             print('Error connecting to Hacker News')
     browser.quit()
