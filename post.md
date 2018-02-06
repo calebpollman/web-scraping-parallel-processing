@@ -29,7 +29,7 @@ def get_driver():
     return driver
 ```
 
-** While ```page_number``` variable is less than or equal to 20: **
+**While ```page_number``` variable is less than or equal to 20:**
 
 Step 1. Attempts to connect to hackernews via ```connect_to_base(browser, page_number)``` using the ```browser``` instance and ```page_number```:
 
