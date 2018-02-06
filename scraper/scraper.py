@@ -1,8 +1,9 @@
 import csv
-import datetime
-from time import sleep, time
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
 
@@ -14,12 +15,19 @@ def get_driver():
 
 def connect_to_base(browser, page_number):
     base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
-    try:
-        browser.get(base_url)
-        return True
-    except Exception as ex:
-        print('Error connecting to {0}'.format(base_url))
-        return False
+    connection_attempts = 0
+    while connection_attempts < 3:
+        try:
+            browser.get(base_url)
+            # wait for table element with id = hnmain to load before returning True
+            element = WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.ID, 'hnmain'))
+            )
+            return True
+        except Exception as ex:
+            print('Error connecting to {0}'.format(base_url))
+            connection_attempts += 1   
+    return False
 
 
 def parse_html(html):
@@ -57,21 +65,8 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 
 
-if __name__ == '__main__':
-    start_time = time()
-    browser = get_driver()
-    page_number = 1
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_number <= 20:
-        if connect_to_base(browser, page_number):
-            sleep(2)
-            html_source = browser.page_source
-            output = parse_html(html_source)
-            write_to_file(output, filename)
-            page_number = page_number + 1
-        else:
-            print('Error connecting to Hacker News')
-    browser.quit()
-    end_time = time()
-    print('Elapsed run time: {0} seconds'.format(end_time - start_time))
+if __name__ == '__init__':
+    get_driver()
+    connect_to_base(browser, page_number)
+    parse_html(html)
+    write_to_file(output_list, filename)

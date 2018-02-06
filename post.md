@@ -39,6 +39,8 @@ def get_driver():
 
 From there, a `while` loop is configured to control the remainder of the program flow:
 
+[REFACTOR]
+
 ```python
 while page_number <= 20:
     if connect_to_base(browser, page_number):
@@ -51,22 +53,31 @@ while page_number <= 20:
         print('Error connecting to Hacker News')
 ```
 
-The browser instance along with a page number is passed to  `connect_to_base()`, which attempts to connect to Hacker News:
+The browser instance along with a page number is passed to  `connect_to_base()`, which attempts to connect to Hacker News, then uses Selenium's explicit wait functionality to ensure the element with *id='hnmain'* has loaded before continuing:
 
 ```python
 def connect_to_base(browser, page_number):
     base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
-    try:
-        browser.get(base_url)
-        return True
-    except Exception as ex:
-        print('Error connecting to {0}'.format(base_url))
-        return False
+    connection_attempts = 0
+    while connection_attempts < 3:
+        try:
+            browser.get(base_url)
+            # wait for table element with id = hnmain to load before returning True
+            element = WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.ID, 'hnmain'))
+            )
+            return True
+        except Exception as ex:
+            print('Error connecting to {0}'.format(base_url))
+            connection_attempts += 1   
+    return False
 ```
 
-For this basic example we call ```sleep(2)``` after connecting to hackernews to give the page a emulate a human user. By default, the webdriver will wait for a page to load via the ```.get()``` method. If you wanted to enusre that a certain element has loaded (e.g. you want to make sure a button is present and clickable) Selenium has a built in explicit wait method for pausing the scraper and waiting on specific events. You can find more information in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
+> More information on explicit wait in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
 
 After the waiting period, the browser grabs the HTML source, which is the passed along to `parse_html()`:
+
+[REFACTOR]
 
 ```python
 html_source = browser.page_source
@@ -115,6 +126,8 @@ def write_to_file(output_list, filename):
 ```
 
 Finally, the page number is incremented and the process start over again:
+
+[REFACTOR]
 
 ```python
 page_number = page_number + 1
