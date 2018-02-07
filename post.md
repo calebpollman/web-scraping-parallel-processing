@@ -7,7 +7,7 @@ TODO: add basic intro
 After completing this tutorial you should be able to:
 
 1. Scrape and crawl websites with Selenium and Beautiful Soup
-[PROB NOT] 1. Use command line arguments to test your python code
+1. Setup unittest for the scraping function
 1. Setup Multiprocessing for a web scraper
 1. Configure headless mode for Chromedriver with Selenium
 
@@ -204,6 +204,8 @@ import unittest
 
 Next, define a class for testing `parse_html()` with a `test_function()` and add the `__main__` block below:
 
+> Note: when writing tests with `unittest`, you need to start the name of each test with `test`, otherwise `unittest` will not run the function.
+
 ```python
 # test/test_scraper.py
 ...
@@ -221,11 +223,11 @@ if __name__ == '__main__':
     unittest.main()        
 ```
 
-Run `pytest` from the command line, your sample test should pass!
+Run `$ pytest` from the command line, your sample test should pass!
 
-> Note: You may run verbose tests by passing in the verbose flag: `pytest -v`
+> Note: You may run verbose tests by passing in the verbose flag: `$ pytest -v`
 
-We will now remove the `test_function()` and write our first test, `test_output_is_not_none()`. this test will need to read from our *test/test.html* file for the html, and pass the result to `parse_html()`:
+We will now remove the `test_function()` and write our first test, `test_output_is_not_none()`. This test will need to read from *test/test.html* for the html, and pass the result to `parse_html()`:
 
 ```python
 # test/test_scraper.py
@@ -238,7 +240,7 @@ class testParseFunction(unittest.TestCase):
             output = parse_html(html)
         self.assertIsNotNone(output)
 ```
-Run `pytest` from the command line and make sure your test passes before moving on.
+Run `$ pytest` from the command line and make sure your test passes before moving on.
 
 ### Refactor with `setUp()` and `tearDown()`:
 
@@ -263,9 +265,9 @@ class testParseFunction(unittest.TestCase):
         self.assertIsNotNone(self.output)
 ...
 ```
-Again, run `pytest` before moving on.
+Again, run `4 pytest` before moving on.
 
-Let's add a couple type checks for `self.output`:
+Before moving to the next section, let's add a couple type checks for `self.output`:
 
 ```python
 ...
@@ -282,7 +284,7 @@ Let's add a couple type checks for `self.output`:
 ...
 ```
 
-Run `pytest` from the command line and make sure you don't have any errors before moving on to the next section.
+Run `$ pytest` from the command line and if everything passes move on to the next section!
 
 > Grab the code [here](test/test_scraper.py)
 
