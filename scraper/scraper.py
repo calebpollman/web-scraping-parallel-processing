@@ -19,7 +19,7 @@ def connect_to_base(browser, page_number):
     while connection_attempts < 3:
         try:
             browser.get(base_url)
-            # wait for table element with id = hnmain to load before returning True
+            # wait for table element with id = 'hnmain' to load before returning True
             element = WebDriverWait(browser, 10).until(
                 EC.presence_of_element_located((By.ID, 'hnmain'))
             )

@@ -7,7 +7,7 @@ TODO: add basic intro
 After completing this tutorial you should be able to:
 
 1. Scrape and crawl websites with Selenium and Beautiful Soup
-1. Use command line arguments to test your python code
+[PROB NOT] 1. Use command line arguments to test your python code
 1. Setup Multiprocessing for a web scraper
 1. Configure headless mode for Chromedriver with Selenium
 
@@ -28,34 +28,54 @@ The script traverses and scrapes the first 20 pages of [Hacker News](https://new
 
 ### Chrome Instance
 
-First, the browser is initialized via `get_driver()`:
+First, a `while` loop is configured to control the remainder of the program flow. It calls the `run_process` function which houses our connection and scraping functions, and increments the `page_count` variable:
 
 ```python
+# script.py
+...
+
+def run_process(page_number, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_number):
+        sleep(2)
+        html = browser.page_source
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) 
+        browser.quit()
+    else:
+        print('Error connecting to hackernews')
+        browser.quit()
+
+
+if __name__ == '__main__':
+    start_time = time()
+    page_number = 1
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = 'output_{0}.csv'.format(output_timestamp)
+    while page_number <= 20:
+        run_process(page_number, filename)
+        page_number = page_number + 1
+    
+    end_time = time()
+    print('Elapsed run time: {0} seconds'.format(end_time - start_time))
+```
+
+In `run_process` , the browser is initialized via `get_driver()`:
+
+```python
+# scraper/scraper.py
+
 def get_driver():
     # initialize driver
     driver = webdriver.Chrome()
     return driver
 ```
 
-From there, a `while` loop is configured to control the remainder of the program flow:
-
-[REFACTOR]
-
-```python
-while page_number <= 20:
-    if connect_to_base(browser, page_number):
-        sleep(2)
-        html_source = browser.page_source
-        output = parse_html(html_source)
-        write_to_file(output, filename)
-        page_number = page_number + 1
-    else:
-        print('Error connecting to Hacker News')
-```
-
 The browser instance along with a page number is passed to  `connect_to_base()`, which attempts to connect to Hacker News, then uses Selenium's explicit wait functionality to ensure the element with *id='hnmain'* has loaded before continuing:
 
 ```python
+# scraper/scraper.py
+
 def connect_to_base(browser, page_number):
     base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
     connection_attempts = 0
@@ -77,9 +97,10 @@ def connect_to_base(browser, page_number):
 
 After the waiting period, the browser grabs the HTML source, which is the passed along to `parse_html()`:
 
-[REFACTOR]
 
 ```python
+# script.py
+
 html_source = browser.page_source
 output = parse_html(html_source)
 ```
@@ -87,6 +108,8 @@ output = parse_html(html_source)
 `parse_html()` then uses Beautiful Soup to parse the HTML, generating a list of dicts with the appropriate data:
 
 ```python
+# scraper/scraper.py
+
 def parse_html(html):
     # create soup object
     soup = BeautifulSoup(html, 'html.parser')
@@ -117,6 +140,8 @@ def parse_html(html):
 The output is added to a CSV file via `write_to_file()`:
 
 ```python
+# scraper/scraper.py
+
 def write_to_file(output_list, filename):
     for row in output_list:
         with open(filename, 'a') as csvfile:
@@ -125,11 +150,13 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 ```
 
-Finally, the page number is incremented and the process start over again:
+Finally, the page number is incremented and the process starts over again:
 
 [REFACTOR]
 
 ```python
+# script.py
+
 page_number = page_number + 1
 ```
 
@@ -204,83 +231,10 @@ Run `python bot.py --test` from the command line and make sure you don't have an
 
 In order to setup Multiprocessing we will go through the following steps. At the end we will add a flag to run Chrome headless to increase processing speed.
 
-Move the call to ```get_driver()``` inside the while loop and add ```browser.quit()``` to each instance:
+Add ```Pool``` and  ```cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports near top of *script.py*:
 
 ```python
-...
-
-if __name__ == '__main__':
-    start_time = time()
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    try:
-        test_flag = sys.argv[1]
-    except:
-        test_flag = 'null'
-    if sys.argv[1] == '--test':
-        html = open('test/test.html')
-        output_list = parse_html(html)
-        write_to_file(output_list, filename)
-    else:
-        page_number = 1
-        while page_number <= 20:
-            browser = get_driver()
-            if connect_to_base(browser, page_number):
-                sleep(2)
-                html = browser.page_source
-                output_list = parse_html(html)
-                write_to_file(output_list, filename)
-                page_number = page_number + 1
-                browser.quit()
-            else:
-                print('Error connecting to hackernews')
-                browser.quit()
-
-...
-```
-
-Abstract functions out of ```__main___``` by creating ```run_process(page_number)```:
-
-```python
-...
-
-def run_process(page_number, filename):
-    browser = get_driver()
-    if connect_to_base(browser, page_number):
-        sleep(2)
-        html = browser.page_source
-        output_list = parse_html(html)
-        write_to_file(output_list, filename)
-        browser.quit()
-    else:
-        print('Error connecting to hackernews')
-        browser.quit()
-
-
-if __name__ == '__main__':
-    start_time = time()
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    try:
-        test_flag = sys.argv[1]
-    except:
-        test_flag = 'null'
-    if test_flag == '--test':
-        html = open('test/test.html')
-        output_list = parse_html(html)
-        write_to_file(output_list, filename)
-    else:
-        page_number = 1
-        while page_number <= 20:
-            run_process(page_number, filename)
-            page_number = page_number + 1
-
-...
-```
-
-Add ```Pool``` and  ```cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports near top of *bot.py*:
-
-```python
+# script.py
 ...
 
 from time import sleep, time
@@ -296,6 +250,7 @@ from multiprocessing import Pool, cpu_count
 Refactor ```__main__``` to use ```Pool()``` in place of ```while``` loop and remove ```page_number``` variable:
 
 ```python
+# script.py
 ...
 
 if __name__ == '__main__':
@@ -322,9 +277,10 @@ if __name__ == '__main__':
 
 # Configure Headless Chromedriver
 
-We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` with the ```--headless``` flag to the driver:
+We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` with the ```--headless``` flag to the `get_driver` function in *script.py/:
 
 ```python
+# scraper/scraper.py
 ...
 
 def get_driver():
