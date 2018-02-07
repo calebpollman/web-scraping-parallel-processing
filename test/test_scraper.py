@@ -5,7 +5,7 @@ import unittest
  
 
 class testParseFunction(unittest.TestCase):
- 
+
     def setUp(self):
         with open('test/test.html', encoding='utf-8') as f:
             html = f.read()
@@ -17,14 +17,13 @@ class testParseFunction(unittest.TestCase):
     def test_output_is_not_none(self):
         self.assertIsNotNone(self.output)
 
+    def test_output_is_a_list(self):
+        empty_list = []
+        self.assertIs(type(self.output), type(empty_list))
+
     def test_output_is_a_list_of_dicts(self):
-        test_item = {
-            'title': 'U.S. consumer protection official puts Equifax probe on ice', 
-            'rank': '1.', 
-            'score': '502 points', 
-            'id': '16308961'
-        }
-        self.assertEqual(self.output[0], test_item)
+        empty_dict = {}
+        self.assertIs(type(self.output[0]), type(empty_dict))
 
 
 if __name__ == '__main__':

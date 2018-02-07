@@ -13,6 +13,16 @@ def get_driver():
     return driver
 
 
+def get_headless_driver():
+    # initialize options
+    options = webdriver.ChromeOptions()
+    # pass in headless argument to options
+    options.add_argument('--headless')
+    # initialize driver
+    driver = webdriver.Chrome(chrome_options=options)
+    return driver
+
+
 def connect_to_base(browser, page_number):
     base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
     connection_attempts = 0
@@ -67,6 +77,7 @@ def write_to_file(output_list, filename):
 
 if __name__ == '__init__':
     get_driver()
+    get_headless_driver()
     connect_to_base(browser, page_number)
     parse_html(html)
     write_to_file(output_list, filename)

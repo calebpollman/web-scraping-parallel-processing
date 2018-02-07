@@ -95,7 +95,18 @@ def connect_to_base(browser, page_number):
 
 > More information on explicit wait in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
 
-Once the page has loaded, the browser grabs the HTML source, which is the passed along to `parse_html()`:
+After the browser has connected to Hacker News, ```sleep(2)``` is called. The reason for this is to emulate a human user.
+
+```python
+# script.py
+...
+if connect_to_base(browser, page_number):
+        sleep(2)
+        html = browser.page_source
+...
+```
+
+Once the page has loaded and ```sleep(2)``` has executed, the browser grabs the HTML source, which is the passed to `parse_html()`:
 
 ```python
 # script.py
@@ -161,7 +172,7 @@ page_number = page_number + 1
 
 Got it? Great! Let's add some basic testing.
 
-# Setup Basic Testing
+## Setup Basic Testing
 
 To test the parsing functionality without initiating the browser and, thus, making repeated get requests to Hacker News, you can download the page html and parse it locally. This can help avoid scenarios where you may get your ip blocked for making too many requests too quickly while writing and testing your parsing function, as well as saving you time by not needing to fire up a browser every time you run the script.
 
@@ -175,54 +186,105 @@ Download the HTML source manually to that directory and rename the file to `test
 
 ![hn](/assets/screenshot.png "Save Screenshot")
 
-Import the `sys` package near the top of file in *bot.py*:
+Create the *test_scraper.py* file in the *test* directory:
 
-```python
-import sys
-import csv
-import datetime
-from time import sleep, time
+```sh
+$ touch test/test_scraper.py
 ```
 
-Then, update the main block to check for the `--test` command line argument:
+Start by importing the scraper functions to be tested along with the `unittest` module at the top of *test/test_scraper.py*:
 
 ```python
+# test/test_scraper.py
+
+from scraper.scraper import parse_html
+
+import unittest
+```
+
+Next, define a class for testing `parse_html()` with a `test_function()` and add the `__main__` block below:
+
+```python
+# test/test_scraper.py
+...
+import unittest
+
+
+class testParseFunction(unittest.TestCase):
+
+    def test_function(self):
+        output = 1 + 2
+        self.assertEqual(output, 3)
+
+
 if __name__ == '__main__':
-    start_time = time()
-    browser = get_driver()
-    # check for command line args
-    try:
-        test_flag = sys.argv[1]
-    except Exception as ex:
-        test_flag = 'null'
-    # if test mode
-    if sys.argv[1] == '--test':
-        print('TEST MODE')
-        html = open('test/test.html')
-        output_list = parse_html(html)
-        write_to_file(output_list, filename)
-    else:
-        browser = get_driver()
-    page_number = 1
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_number <= 20:
-        if connect_to_base(browser, page_number):
-            sleep(2)
-            html_source = browser.page_source
-            output = parse_html(html_source)
-            write_to_file(output, filename)
-            page_number = page_number + 1
-        else:
-            print('Error connecting to Hacker News')
-    browser.quit()
-    end_time = time()
-    print('Elapsed run time: {0} seconds'.format(end_time - start_time))
+    unittest.main()        
 ```
 
-Run `python bot.py --test` from the command line and make sure you don't have any errors before moving on to the next section.
+Run `pytest` from the command line, your sample test should pass!
 
-> Grab the code [here](bot-test.py)
+> Note: You may run verbose tests by passing in the verbose flag: `pytest -v`
+
+We will now remove the `test_function()` and write our first test, `test_output_is_not_none()`. this test will need to read from our *test/test.html* file for the html, and pass the result to `parse_html()`:
+
+```python
+# test/test_scraper.py
+...
+class testParseFunction(unittest.TestCase):
+
+    def test_output_is_not_none(self):
+        with open('test/test.html', encoding='utf-8') as f:
+            html = f.read()
+            output = parse_html(html)
+        self.assertIsNotNone(output)
+```
+Run `pytest` from the command line and make sure your test passes before moving on.
+
+### Refactor with `setUp()` and `tearDown()`:
+
+When writing tests with the `unittest` module, you can save yourself time, and keep things DRY, by taking advantage of the built-in `setUp()` and `tearDown()` methods. These methods will run before and after each test respectively.
+
+Let's go ahead and refactor our current test to use `setUp()` and `tearDown()`:
+
+```python
+# test/test_scraper_py
+...
+class testParseFunction(unittest.TestCase):
+
+    def setUp(self):
+        with open('test/test.html', encoding='utf-8') as f:
+            html = f.read()
+            self.output = parse_html(html)
+    
+    def tearDown(self):
+        self.output = []
+
+    def test_output_is_not_none(self):
+        self.assertIsNotNone(self.output)
+...
+```
+Again, run `pytest` before moving on.
+
+Let's add a couple type checks for `self.output`:
+
+```python
+...
+    def test_output_is_not_none(self):
+        self.assertIsNotNone(self.output)
+
+    def test_output_is_a_list(self):
+        empty_list = []
+        self.assertIs(type(self.output), type(empty_list))
+
+    def test_output_is_a_list_of_dicts(self):
+        empty_dict = {}
+        self.assertIs(type(self.output[0]), type(empty_dict))
+...
+```
+
+Run `pytest` from the command line and make sure you don't have any errors before moving on to the next section.
+
+> Grab the code [here](test/test_scraper.py)
 
 ## Configure Multiprocessing
 
@@ -254,19 +316,10 @@ if __name__ == '__main__':
     start_time = time()
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = 'output_{0}.csv'.format(output_timestamp)
-    try:
-        test_flag = sys.argv[1]
-    except:
-        test_flag = 'null'
-    if test_flag == '--test':
-        html = open('test/test.html')
-        output_list = parse_html(html)
-        write_to_file(output_list, filename)
-    else:
-        with Pool(cpu_count()-1) as p:
-            p.starmap(run_process, zip(range(1, 21), repeat(filename)))
-        p.close()
-        p.join()
+    with Pool(cpu_count()-1) as p:
+        p.starmap(run_process, zip(range(1, 21), repeat(filename)))
+    p.close()
+    p.join()
 
 ...
 ```
