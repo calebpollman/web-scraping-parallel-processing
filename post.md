@@ -28,7 +28,7 @@ The script traverses and scrapes the first 20 pages of [Hacker News](https://new
 
 ### Chrome Instance
 
-First, a `while` loop is configured to control the remainder of the program flow. It calls the `run_process` function which houses our connection and scraping functions, and increments the `page_count` variable:
+First, a `while` loop is configured to control the remainder of the program flow. It calls `run_process(` which houses our connection and scraping functions, and increments `page_number`:
 
 ```python
 # script.py
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     print('Elapsed run time: {0} seconds'.format(end_time - start_time))
 ```
 
-In `run_process` , the browser is initialized via `get_driver()`:
+In `run_process()` , the browser is initialized via `get_driver()`:
 
 ```python
 # scraper/scraper.py
@@ -71,7 +71,7 @@ def get_driver():
     return driver
 ```
 
-The browser instance along with a page number is passed to  `connect_to_base()`, which attempts to connect to Hacker News, then uses Selenium's explicit wait functionality to ensure the element with *id='hnmain'* has loaded before continuing:
+The browser instance along with a page number is passed to `connect_to_base()`, which attempts to connect to Hacker News, then uses Selenium's explicit wait functionality to ensure the element with *id='hnmain'* has loaded before continuing:
 
 ```python
 # scraper/scraper.py
@@ -95,8 +95,7 @@ def connect_to_base(browser, page_number):
 
 > More information on explicit wait in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
 
-After the waiting period, the browser grabs the HTML source, which is the passed along to `parse_html()`:
-
+Once the page has loaded, the browser grabs the HTML source, which is the passed along to `parse_html()`:
 
 ```python
 # script.py
@@ -150,9 +149,7 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 ```
 
-Finally, the page number is incremented and the process starts over again:
-
-[REFACTOR]
+Finally, `page_number` increments and the process starts over again:
 
 ```python
 # script.py
@@ -160,7 +157,7 @@ Finally, the page number is incremented and the process starts over again:
 page_number = page_number + 1
 ```
 
-> Want to test this out? Grab the full script [here](bot.py).
+> Want to test this out? Grab the full script [here](script/script.py).
 
 Got it? Great! Let's add some basic testing.
 
