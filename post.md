@@ -157,7 +157,7 @@ Finally, `page_number` increments and the process starts over again:
 page_number = page_number + 1
 ```
 
-> Want to test this out? Grab the full script [here](script/script.py).
+> Want to test this out? Grab the full script [here](script.py).
 
 Got it? Great! Let's add some basic testing.
 
@@ -165,7 +165,7 @@ Got it? Great! Let's add some basic testing.
 
 To test the parsing functionality without initiating the browser and, thus, making repeated get requests to Hacker News, you can download the page html and parse it locally. This can help avoid scenarios where you may get your ip blocked for making too many requests too quickly while writing and testing your parsing function, as well as saving you time by not needing to fire up a browser every time you run the script.
 
-Create a `test` directory:
+Create a `test` directory from the command line:
 
 ```sh
 $ mkdir test
@@ -271,10 +271,11 @@ if __name__ == '__main__':
 ...
 ```
 
+> Check out the completed script [here](script_parallel.py)
 
 # Configure Headless Chromedriver
 
-We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` with the ```--headless``` flag to the `get_driver` function in *script.py/:
+We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` with the ```--headless``` flag to `get_driver()` in *scraper/scraper.py*:
 
 ```python
 # scraper/scraper.py
