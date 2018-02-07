@@ -17,7 +17,7 @@ From the command line run the following commands:
 
 ```sh
 $ git clone git@github.com:calebpollman/web-scraping-parallel-processing.git
-$ pip install requirements.txt
+$ pip install -r requirements.txt
 ```
 
 Install `chromedriver` globally. You can find instructions [here](https://sites.google.com/a/chromium.org/chromedriver/).
