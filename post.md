@@ -7,17 +7,19 @@ TODO: add basic intro
 After completing this tutorial you should be able to:
 
 1. Scrape and crawl websites with Selenium and Beautiful Soup
-1. Setup unittest for the scraping function
-1. Setup Multiprocessing for a web scraper
+1. Set up unittest to test the scraping and parsing functionalities
+1. Set up multiprocessing to execute the web scraper in parallel
 1. Configure headless mode for Chromedriver with Selenium
 
 ## Project Setup
 
-From the command line run the following commands:
+Clone down the repo if you'd like to follow along. From the command line run the following commands:
 
 ```sh
 $ git clone git@github.com:calebpollman/web-scraping-parallel-processing.git
-$ pip install -r requirements.txt
+$ cd web-scraping-parallel-processing
+$ python3 -m venv env
+(env)$ pip install -r requirements.txt
 ```
 
 Install `chromedriver` globally. You can find instructions [here](https://sites.google.com/a/chromium.org/chromedriver/).
@@ -26,100 +28,123 @@ Install `chromedriver` globally. You can find instructions [here](https://sites.
 
 The script traverses and scrapes the first 20 pages of [Hacker News](https://news.ycombinator.com/) for information about the current articles listed using [Selenium](http://www.seleniumhq.org/projects/webdriver/) to automate interaction with the site and [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/) to parse the HTML.
 
-### Chrome Instance
+### The Scraper
 
-First, a `while` loop is configured to control the remainder of the program flow. It calls `run_process(` which houses our connection and scraping functions, and increments `page_number`:
+First, within *script.py* a `while` loop is configured to control the flow of the overall scrapper:
 
 ```python
-# script.py
-...
+if __name__ == '__main__':
+    start_time = time()
+    current_page = 1
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    output_filename = f'output_{output_timestamp}.csv'
+    while current_page <= 20:
+        run_process(current_page, output_filename) # here
+        current_page = current_page + 1
+    end_time = time()
+    elapsed_time = end_time - start_time
+    print(f'Elapsed run time: {elapsed_time} seconds')
+```
 
+It calls `run_process()`, which houses our connection and scraping functions:
+
+```python
 def run_process(page_number, filename):
-    browser = get_driver()
+    browser = get_driver() # here
     if connect_to_base(browser, page_number):
         sleep(2)
         html = browser.page_source
         output_list = parse_html(html)
-        write_to_file(output_list, filename) 
+        write_to_file(output_list, filename)
         browser.quit()
     else:
         print('Error connecting to hackernews')
         browser.quit()
-
-
-if __name__ == '__main__':
-    start_time = time()
-    page_number = 1
-    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_number <= 20:
-        run_process(page_number, filename)
-        page_number = page_number + 1
-    
-    end_time = time()
-    print('Elapsed run time: {0} seconds'.format(end_time - start_time))
 ```
 
-In `run_process()` , the browser is initialized via `get_driver()`:
+In `run_process()`, the browser is initialized via `get_driver()` from *scraper/scraper.py*:
 
 ```python
-# scraper/scraper.py
-
 def get_driver():
     # initialize driver
     driver = webdriver.Chrome()
     return driver
 ```
 
-The browser instance along with a page number is passed to `connect_to_base()`, which attempts to connect to Hacker News, then uses Selenium's explicit wait functionality to ensure the element with *id='hnmain'* has loaded before continuing:
+The browser instance along with a page number are passed to `connect_to_base()`:
 
 ```python
-# scraper/scraper.py
+def run_process(page_number, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_number): # here
+        sleep(2)
+        html = browser.page_source
+        output_list = parse_html(html)
+        write_to_file(output_list, filename)
+        browser.quit()
+    else:
+        print('Error connecting to hackernews')
+        browser.quit()
+```
 
+This function attempts to connect to Hacker News and then uses Selenium's explicit wait functionality to ensure the element with `id='hnmain'` has loaded before continuing:
+
+```python
 def connect_to_base(browser, page_number):
-    base_url = 'https://news.ycombinator.com/news?p={0}'.format(page_number)
+    base_url = f'https://news.ycombinator.com/news?p={page_number}'
     connection_attempts = 0
     while connection_attempts < 3:
         try:
             browser.get(base_url)
-            # wait for table element with id = hnmain to load before returning True
-            element = WebDriverWait(browser, 10).until(
+            # wait for table element with id = 'hnmain' to load
+            # before returning True
+            WebDriverWait(browser, 10).until(
                 EC.presence_of_element_located((By.ID, 'hnmain'))
             )
             return True
         except Exception as ex:
-            print('Error connecting to {0}'.format(base_url))
-            connection_attempts += 1   
+            print(f'Error connecting to {base_url}')
+            connection_attempts += 1
     return False
 ```
 
-> More information on explicit wait in the Selenium docs [here](http://selenium-python.readthedocs.io/waits.html#explicit-waits).
+> Review the Selenium [docs](http://selenium-python.readthedocs.io/waits.html#explicit-waits) for more information on explicit wait.
 
-After the browser has connected to Hacker News, ```sleep(2)``` is called. The reason for this is to emulate a human user.
+To emulate a human user, `sleep(2)` is called after the browser has connected to Hacker News:
 
 ```python
-# script.py
-...
-if connect_to_base(browser, page_number):
-        sleep(2)
+def run_process(page_number, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_number):
+        sleep(2) # here
         html = browser.page_source
-...
+        output_list = parse_html(html)
+        write_to_file(output_list, filename)
+        browser.quit()
+    else:
+        print('Error connecting to hackernews')
+        browser.quit()
 ```
 
-Once the page has loaded and ```sleep(2)``` has executed, the browser grabs the HTML source, which is the passed to `parse_html()`:
+Once the page has loaded and `sleep(2)` has executed, the browser grabs the HTML source, which is then passed to `parse_html()`:
 
 ```python
-# script.py
-
-html_source = browser.page_source
-output = parse_html(html_source)
+def run_process(page_number, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_number):
+        sleep(2)
+        html = browser.page_source # here
+        output_list = parse_html(html) # and here
+        write_to_file(output_list, filename)
+        browser.quit()
+    else:
+        print('Error connecting to hackernews')
+        browser.quit()
 ```
 
-`parse_html()` then uses Beautiful Soup to parse the HTML, generating a list of dicts with the appropriate data:
+`parse_html()` uses Beautiful Soup to parse the HTML, generating a list of dicts with the appropriate data:
 
 ```python
-# scraper/scraper.py
-
 def parse_html(html):
     # create soup object
     soup = BeautifulSoup(html, 'html.parser')
@@ -130,7 +155,7 @@ def parse_html(html):
         for tr in tr_blocks:
             tr_id = tr.get('id')
             try:
-                score = soup.find(id='score_{0}'.format(tr_id)).string
+                score = soup.find(id=f'score_{tr_id}').string
             except Exception as ex:
                 score = '0 points'
             article_info = {
@@ -139,7 +164,7 @@ def parse_html(html):
                 'score': score,
                 'title': tr.find(class_='storylink').string
             }
-            # append article_info to output_list
+            # appends article_info to output_list
             output_list.append(article_info)
     except Exception as ex:
         print('Parsing Error')
@@ -147,11 +172,25 @@ def parse_html(html):
     return output_list
 ```
 
-The output is added to a CSV file via `write_to_file()`:
+The output is added to a CSV file:
 
 ```python
-# scraper/scraper.py
+def run_process(page_number, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_number):
+        sleep(2)
+        html = browser.page_source
+        output_list = parse_html(html)
+        write_to_file(output_list, filename) # here
+        browser.quit()
+    else:
+        print('Error connecting to hackernews')
+        browser.quit()
+```
 
+`write_to_file()`:
+
+```python
 def write_to_file(output_list, filename):
     for row in output_list:
         with open(filename, 'a') as csvfile:
@@ -160,117 +199,55 @@ def write_to_file(output_list, filename):
             writer.writerow(row)
 ```
 
-Finally, `page_number` increments and the process starts over again:
+Finally, back in the `while` loop, the `page_number` is incremented and the process starts over again:
 
 ```python
-# script.py
-
-page_number = page_number + 1
+if __name__ == '__main__':
+    start_time = time()
+    current_page = 1
+    output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    output_filename = f'output_{output_timestamp}.csv'
+    while current_page <= 20:
+        run_process(current_page, output_filename)
+        current_page = current_page + 1 # here
+    end_time = time()
+    elapsed_time = end_time - start_time
+    print(f'Elapsed run time: {elapsed_time} seconds')
 ```
 
 > Want to test this out? Grab the full script [here](script.py).
 
+It should take about 93 seconds to run:
+
+```sh
+$ python script.py
+Elapsed run time: 93.19852066040039 seconds
+```
+
 Got it? Great! Let's add some basic testing.
 
-## Setup Basic Testing
+## Testing
 
-To test the parsing functionality without initiating the browser and, thus, making repeated get requests to Hacker News, you can download the page html and parse it locally. This can help avoid scenarios where you may get your ip blocked for making too many requests too quickly while writing and testing your parsing function, as well as saving you time by not needing to fire up a browser every time you run the script.
+To test the parsing functionality without initiating the browser and, thus, making repeated get requests to Hacker News, you can download the page HTML and parse it locally. This can help avoid scenarios where you may get your IP blocked for making too many requests too quickly while writing and testing your parsing function, as well as saving you time by not needing to fire up a browser every time you run the script.
 
-Create a `test` directory from the command line:
-
-```sh
-$ mkdir test
-```
-
-Download the HTML source manually to that directory and rename the file to `test.html`:
-
-![hn](/assets/screenshot.png "Save Screenshot")
-
-Create the *test_scraper.py* file in the *test* directory:
-
-```sh
-$ touch test/test_scraper.py
-```
-
-Start by importing the scraper functions to be tested along with the `unittest` module at the top of *test/test_scraper.py*:
+*scraper/scraper.py*:
 
 ```python
-# test/test_scraper.py
+import unittest
 
 from scraper.scraper import parse_html
 
-import unittest
-```
 
-Next, define a class for testing `parse_html()` with a `test_function()` and add the `__main__` block below:
-
-> Note: when writing tests with `unittest`, you need to start the name of each test with `test`, otherwise `unittest` will not run the function.
-
-```python
-# test/test_scraper.py
-...
-import unittest
-
-
-class testParseFunction(unittest.TestCase):
-
-    def test_function(self):
-        output = 1 + 2
-        self.assertEqual(output, 3)
-
-
-if __name__ == '__main__':
-    unittest.main()        
-```
-
-Run `$ pytest` from the command line, your sample test should pass!
-
-> Note: You may run verbose tests by passing in the verbose flag: `$ pytest -v`
-
-We will now remove the `test_function()` and write our first test, `test_output_is_not_none()`. This test will need to read from *test/test.html* for the html, and pass the result to `parse_html()`:
-
-```python
-# test/test_scraper.py
-...
-class testParseFunction(unittest.TestCase):
-
-    def test_output_is_not_none(self):
-        with open('test/test.html', encoding='utf-8') as f:
-            html = f.read()
-            output = parse_html(html)
-        self.assertIsNotNone(output)
-```
-Run `$ pytest` from the command line and make sure your test passes before moving on.
-
-### Refactor with `setUp()` and `tearDown()`:
-
-When writing tests with the `unittest` module, you can save yourself time, and keep things DRY, by taking advantage of the built-in `setUp()` and `tearDown()` methods. These methods will run before and after each test respectively.
-
-Let's go ahead and refactor our current test to use `setUp()` and `tearDown()`:
-
-```python
-# test/test_scraper_py
-...
-class testParseFunction(unittest.TestCase):
+class TestParseFunction(unittest.TestCase):
 
     def setUp(self):
         with open('test/test.html', encoding='utf-8') as f:
             html = f.read()
             self.output = parse_html(html)
-    
+
     def tearDown(self):
         self.output = []
 
-    def test_output_is_not_none(self):
-        self.assertIsNotNone(self.output)
-...
-```
-Again, run `4 pytest` before moving on.
-
-Before moving to the next section, let's add a couple type checks for `self.output`:
-
-```python
-...
     def test_output_is_not_none(self):
         self.assertIsNotNone(self.output)
 
@@ -281,61 +258,81 @@ Before moving to the next section, let's add a couple type checks for `self.outp
     def test_output_is_a_list_of_dicts(self):
         empty_dict = {}
         self.assertIs(type(self.output[0]), type(empty_dict))
-...
+
+
+if __name__ == '__main__':
+    unittest.main()
 ```
 
-Run `$ pytest` from the command line and if everything passes move on to the next section!
+Ensure all is well:
 
-> Grab the code [here](test/test_scraper.py)
+```sh
+$ python test/test_scraper.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.573s
+
+OK
+```
 
 ## Configure Multiprocessing
 
-In order to setup Multiprocessing we will go through the following steps. At the end we will add a flag to run Chrome headless to increase processing speed.
-
-Add ```Pool``` and  ```cpu_count``` modules from ```multiprocessing``` package and ```repeat``` module from ```itertools``` package to imports near top of *script.py*:
+Now comes up the fun part! By making just a few changes to the script, we speed things up using the `multiprocessing` library:
 
 ```python
-# script.py
-...
-
-from time import sleep, time
+import datetime
 from itertools import repeat
-
-from selenium import webdriver
-from bs4 import BeautifulSoup
+from time import sleep, time
 from multiprocessing import Pool, cpu_count
 
-...
-```
+from scraper.scraper import get_driver, connect_to_base, \
+    parse_html, write_to_file
 
-Refactor ```__main__``` to use ```Pool()``` in place of ```while``` loop and remove ```page_number``` variable:
 
-```python
-# script.py
-...
+def run_process(page_number, filename):
+    browser = get_driver()
+    if connect_to_base(browser, page_number):
+        sleep(2)
+        html = browser.page_source
+        output_list = parse_html(html)
+        write_to_file(output_list, filename)
+        browser.quit()
+    else:
+        print('Error connecting to hackernews')
+        browser.quit()
+
 
 if __name__ == '__main__':
     start_time = time()
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
+    output_filename = f'output_{output_timestamp}.csv'
     with Pool(cpu_count()-1) as p:
-        p.starmap(run_process, zip(range(1, 21), repeat(filename)))
+        p.starmap(run_process, zip(range(1, 21), repeat(output_filename)))
     p.close()
     p.join()
+    end_time = time()
+    elapsed_time = end_time - start_time
+    print(f'Elapsed run time: {elapsed_time} seconds')
+```
 
-...
+`Pool` is used to spawn a number of subprocesses based on the number of CPUs available on the system.
+
+> This script is tested on a i7 Macbook Pro that has [8 cores](https://superuser.com/a/1101314).
+
+Run:
+
+```python
+$ python script_parallel.py
+Elapsed run time: 20.769462823867798 seconds
 ```
 
 > Check out the completed script [here](script_parallel.py)
 
 # Configure Headless Chromedriver
 
-We can go headless with Chrome to speed up processing by adding ```ChromeOptions()``` with the ```--headless``` flag to `get_driver()` in *scraper/scraper.py*:
+To speed things up even further we can run Chrome in headless mode by simply updating `get_driver()` in *scraper/scraper.py*:
 
 ```python
-# scraper/scraper.py
-...
-
 def get_driver():
     # initialize options
     options = webdriver.ChromeOptions()
@@ -344,8 +341,13 @@ def get_driver():
     # initialize driver
     driver = webdriver.Chrome(chrome_options=options)
     return driver
+```
 
-...
+This should take around 19 seconds to complete:
+
+```sh
+$ python script_parallel.py
+Elapsed run time: 19.63220715522766 seconds
 ```
 
 # Conclusion/After Analysis
