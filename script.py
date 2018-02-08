@@ -1,7 +1,8 @@
-from time import sleep, time
 import datetime
+from time import sleep, time
 
-from scraper.scraper import get_driver, connect_to_base, parse_html, write_to_file
+from scraper.scraper import get_driver, connect_to_base, \
+    parse_html, write_to_file
 
 
 def run_process(page_number, filename):
@@ -10,7 +11,7 @@ def run_process(page_number, filename):
         sleep(2)
         html = browser.page_source
         output_list = parse_html(html)
-        write_to_file(output_list, filename) 
+        write_to_file(output_list, filename)
         browser.quit()
     else:
         print('Error connecting to hackernews')
@@ -19,12 +20,12 @@ def run_process(page_number, filename):
 
 if __name__ == '__main__':
     start_time = time()
-    page_number = 1
+    current_page = 1
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = 'output_{0}.csv'.format(output_timestamp)
-    while page_number <= 20:
-        run_process(page_number, filename)
-        page_number = page_number + 1
-    
+    output_filename = f'output_{output_timestamp}.csv'
+    while current_page <= 20:
+        run_process(current_page, output_filename)
+        current_page = current_page + 1
     end_time = time()
-    print('Elapsed run time: {0} seconds'.format(end_time - start_time))
+    elapsed_time = end_time - start_time
+    print(f'Elapsed run time: {elapsed_time} seconds')

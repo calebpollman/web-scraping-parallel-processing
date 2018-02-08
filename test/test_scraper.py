@@ -1,16 +1,15 @@
-# import scraper functions
+import unittest
+
 from scraper.scraper import parse_html
 
-import unittest
- 
 
-class testParseFunction(unittest.TestCase):
+class TestParseFunction(unittest.TestCase):
 
     def setUp(self):
         with open('test/test.html', encoding='utf-8') as f:
             html = f.read()
             self.output = parse_html(html)
-    
+
     def tearDown(self):
         self.output = []
 
@@ -28,4 +27,3 @@ class testParseFunction(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
