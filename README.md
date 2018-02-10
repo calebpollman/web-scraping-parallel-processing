@@ -10,11 +10,6 @@ Run Parallel Scraper:
 $ python3 script_parallel.py
 ```
 
-Run Headless Parallel Scraper:
-```sh
-$ python3 script_headless.py
-```
-
 Run Tests:
 ```sh
 $ pytest

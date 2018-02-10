@@ -30,7 +30,7 @@ The script traverses and scrapes the first 20 pages of [Hacker News](https://new
 
 ### The Scraper
 
-First, within *script.py* a `while` loop is configured to control the flow of the overall scrapper:
+First, within *script.py* a `while` loop is configured to control the flow of the overall scraper:
 
 ```python
 if __name__ == '__main__':
@@ -352,4 +352,4 @@ Elapsed run time: 19.63220715522766 seconds
 
 # Conclusion/After Analysis
 
-TODO: Write a conclusion
+With a small amount of code, we were able to take 

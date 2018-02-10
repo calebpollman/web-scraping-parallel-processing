@@ -1,4 +1,5 @@
 import csv
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -7,20 +8,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
 
-# def get_driver():
-#     # initialize driver
-#     driver = webdriver.Chrome()
-#     return driver
-
-
 def get_driver():
-    # initialize options
-    options = webdriver.ChromeOptions()
-    # pass in headless argument to options
-    options.add_argument('--headless')
     # initialize driver
-    driver = webdriver.Chrome(chrome_options=options)
+    driver = webdriver.Chrome()
     return driver
+
+
+# def get_driver():
+#     # initialize options
+#     options = webdriver.ChromeOptions()
+#     # pass in headless argument to options
+#     options.add_argument('--headless')
+#     # initialize driver
+#     driver = webdriver.Chrome(chrome_options=options)
+    # return driver
 
 
 def connect_to_base(browser, page_number):
@@ -36,8 +37,8 @@ def connect_to_base(browser, page_number):
             )
             return True
         except Exception as ex:
-            print(f'Error connecting to {base_url}')
             connection_attempts += 1
+            print(f'Error connecting to {base_url}. Attempt #{connection_attempts}')
     return False
 
 
@@ -49,28 +50,50 @@ def parse_html(html):
         # parse soup object to get article id, rank, score, and title
         tr_blocks = soup.find_all('tr', class_='athing')
         for tr in tr_blocks:
-            tr_id = tr.get('id')
+            article_id = tr.get('id')
+            article_url = tr.find_all('a')[1]['href']
+            # check if article is a hacker news article
+            if 'item?id=' in article_url:
+                article_url = f'https://news.ycombinator.com/{article_url}'
+            # load_time = get_load_time(article_url)
             try:
-                score = soup.find(id=f'score_{tr_id}').string
+                score = soup.find(id=f'score_{article_id}').string
             except Exception as ex:
                 score = '0 points'
             article_info = {
-                'id': tr_id,
+                'id': article_id,
+                'load_time': 'load_time',
                 'rank': tr.span.string,
                 'score': score,
-                'title': tr.find(class_='storylink').string
+                'title': tr.find(class_='storylink').string,
+                'url': article_url
             }
             # appends article_info to output_list
             output_list.append(article_info)
     except Exception as ex:
         print('Parsing Error')
+        return output_list
     # returns output_list
     return output_list
+
+
+def get_load_time(article_url):
+    try:
+        # set headers    # 
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+        # make get request to article_url
+        response = requests.get(article_url, headers=headers, stream=True, timeout=3.000)
+        # get page load time
+        load_time = response.elapsed.total_seconds()
+    except Exception as ex:
+        load_time = 'Loading Error'
+    # returns load_time
+    return load_time
 
 
 def write_to_file(output_list, filename):
     for row in output_list:
         with open(filename, 'a') as csvfile:
-            fieldnames = ['id', 'rank', 'score', 'title']
+            fieldnames = ['id', 'load_time', 'rank', 'score', 'title', 'url']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writerow(row)
