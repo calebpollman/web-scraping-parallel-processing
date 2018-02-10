@@ -444,7 +444,7 @@ With the `multiprocessing` library, `Pool` is used to spawn a number of subproce
 
 Run:
 
-```python
+```sh
 $ python script_parallel.py
 Elapsed run time: 62.95027780532837 seconds
 ```
