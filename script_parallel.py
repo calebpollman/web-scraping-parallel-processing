@@ -1,9 +1,9 @@
 import datetime
 from itertools import repeat
 from time import sleep, time
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
-from scraper.scraper import get_driver, connect_to_base, \
+from scrapers.scraper import get_driver, connect_to_base, \
     parse_html, write_to_file
 
 
@@ -25,8 +25,8 @@ if __name__ == '__main__':
     output_timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     output_filename = f'output_{output_timestamp}.csv'
     browser = get_driver()
-    with Pool(5) as p:
-        p.starmap(run_process, zip(range(1, 4), repeat(output_filename)))
+    with Pool(cpu_count()-1) as p:
+        p.starmap(run_process, zip(range(1, 21), repeat(output_filename)))
     p.close()
     p.join()
     end_time = time()
