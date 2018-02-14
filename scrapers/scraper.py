@@ -10,18 +10,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
 
-# def get_driver():
-#     driver = webdriver.Chrome()
-#     return driver
-
 def get_driver():
-    # initialize options
-    options = webdriver.ChromeOptions()
-    # pass in headless argument to options
-    options.add_argument('--headless')
-    # initialize driver
-    driver = webdriver.Chrome(chrome_options=options)
+    driver = webdriver.Chrome()
     return driver
+
+# def get_driver():
+#     # initialize options
+#     options = webdriver.ChromeOptions()
+#     # pass in headless argument to options
+#     options.add_argument('--headless')
+#     # initialize driver
+#     driver = webdriver.Chrome(chrome_options=options)
+#     return driver
 
 
 def connect_to_base(browser, page_number):

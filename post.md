@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a quick post that looks at how to speed up a simple, Python-based web scraping and crawling script with the parallel Processing via the multiprocessing library. We'll also break down the script itself and show how to test the parsing functionality.
+This is a quick post that looks at how to speed up a simple, Python-based web scraping and crawling script with parallel processing via the multiprocessing library. We'll also break down the script itself and show how to test the parsing functionality.
 
 TODO: add image
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     print(f'Elapsed run time: {elapsed_time} seconds')
 ```
 
-Within the `loop`, run_process() is called, which houses the connection and scraping functions.
+Within the `loop`, `run_process()` is called, which houses the connection and scraping functions.
 
 ```python
 def run_process(page_number, filename, browser):
@@ -123,7 +123,7 @@ def run_process(page_number, filename, browser):
         print('Error connecting to hackernews')
 ```
 
-In `run_process()`, the browser instance along with a page number are passed to connect_to_base().
+In `run_process()`, the browser instance along with a page number are passed to `connect_to_base()`.
 
 ```python
 def run_process(page_number, filename, browser):
@@ -475,4 +475,5 @@ Elapsed run time: 58.14033889770508 seconds
 
 # Conclusion/After Analysis
 
-With a small amount of code, we were able to take
+With a small amount of variation in the orignal code, we were able to take the script's run time from around 272 seconds to just over 58 seconds, in this specific scenario that's 78.7% faster.
+
