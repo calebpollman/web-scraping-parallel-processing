@@ -2,13 +2,13 @@
 
 ## Introduction
 
-This is a quick post that looks at how to speed up a simple, Python-based web scraping and crawling script with the parallel Processing via the multiprocessing library. We'll also break down the script itself and show how to test the parsing functionality.
+This is a quick post that looks at how to speed up a simple, Python-based web scraping and crawling script with parallel processing via the multiprocessing library. We'll also break down the script itself and show how to test the parsing functionality.
 
 TODO: add image
 
 After completing this tutorial you should be able to:
 
-1. Scrape and crawl websites with Selenium and Beautiful Soup
+1. Scrape and crawl websites with Selenium and parse HTML with Beautiful Soup
 1. Set up unittest to test the scraping and parsing functionalities
 1. Set up multiprocessing to execute the web scraper in parallel
 1. Configure headless mode for ChromeDriver with Selenium
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     print(f'Elapsed run time: {elapsed_time} seconds')
 ```
 
-Within the `loop`, run_process() is called, which houses the connection and scraping functions.
+Within the loop, `run_process()` is called, which houses the connection and scraping functions.
 
 ```python
 def run_process(page_number, filename, browser):
@@ -123,7 +123,7 @@ def run_process(page_number, filename, browser):
         print('Error connecting to hackernews')
 ```
 
-In `run_process()`, the browser instance along with a page number are passed to connect_to_base().
+In `run_process()`, the browser instance and a page number are passed to `connect_to_base()`.
 
 ```python
 def run_process(page_number, filename, browser):
@@ -449,7 +449,7 @@ $ python script_parallel.py
 Elapsed run time: 62.95027780532837 seconds
 ```
 
-> Check out the completed script [here](script_parallel.py)
+> Check out the completed script [here](script_parallel.py).
 
 # Configure Headless ChromeDriver
 
@@ -474,5 +474,7 @@ Elapsed run time: 58.14033889770508 seconds
 ```
 
 # Conclusion/After Analysis
+
+TODO: finish conclusion
 
 With a small amount of code, we were able to take
