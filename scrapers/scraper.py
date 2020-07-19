@@ -78,7 +78,7 @@ def parse_html(html):
 def get_load_time(article_url):
     try:
         # set headers
-        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36'}
         # make get request to article_url
         response = requests.get(
             article_url, headers=headers, stream=True, timeout=3.000)
